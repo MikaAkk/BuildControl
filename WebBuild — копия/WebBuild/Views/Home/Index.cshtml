@@ -1,0 +1,40 @@
+﻿@{
+    ViewData["Title"] = "Главная страница";
+    var isAuthenticated = Context.Session.Get("EmployeeId") != null;
+}
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <span>@TempData["SuccessMessage"]</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span>@TempData["Error"]</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="text-center">
+    <h1 class="display-4">Добро пожаловать в СтройКонтроль</h1>
+    <p>Система управления строительными проектами.</p>
+</div>
+
+<div class="mt-3 text-center">
+    @if (isAuthenticated)
+    {
+        <form asp-controller="Account" asp-action="Logout" method="post" style="display:inline;">
+            <button type="submit" class="btn btn-outline-danger">Выйти из системы</button>
+        </form>
+    }
+    else
+    {
+        <a asp-action="ShowLogin" asp-controller="Account" class="btn btn-primary">Войти в систему</a>
+    }
+</div>
+<div class="mt-4 text-center">
+    <a asp-controller="Public" asp-action="Calculator" class="btn btn-secondary">Рассчитать стоимость работ</a>
+</div>

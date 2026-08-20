@@ -1,0 +1,75 @@
+﻿@model List<WebBuild.Models.ObjectManager.ApplicationViewManager>
+
+@{
+    ViewData["Title"] = "Мои заявки";
+}
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Мои заявки (@ViewBag.TotalCount)</h2>
+        <a asp-action="Index" asp-controller="ObjectManager" class="btn btn-outline-secondary">← На главную</a>
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <table class="table table-striped table-hover shadow-sm rounded">
+            <thead class="table-dark">
+                <tr>
+                    <th>Дата</th>
+                    <th>Клиент</th>
+                    <th>Услуги</th>
+                    <th class="text-end">Сумма</th>
+                    <th>Статус</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var app in Model)
+                {
+                    <tr>
+                        <td>@app.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+
+                        <td>
+                            <strong>@app.ClientFullName</strong><br>
+                            <small class="text-muted">@app.ClientPhone</small>
+                        </td>
+
+                        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+                            @foreach (var serviceName in app.ServiceNames)
+                            {
+                                <span class="badge bg-light text-dark border me-1">@serviceName</span>
+                            }
+                        </td>
+
+                        <td class="text-end fw-bold">
+                            @app.TotalPrice.ToString("N0") ₽
+                        </td>
+
+                        <td>
+                            <span class="badge
+                                @(app.StatusName.Contains("Новый") ? "bg-primary" :
+                                  app.StatusName.Contains("В работе") ? "bg-warning text-dark" :
+                                  app.StatusName.Contains("Выполнен") ? "bg-success" :
+                                  "bg-secondary")">
+                                @app.StatusName
+                            </span>
+                        </td>
+
+                        <td>
+                            <a asp-action="Details" asp-route-id="@app.Id"
+                               class="btn btn-sm btn-outline-primary">
+                                Подробнее
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <div class="alert alert-info text-center">
+            У вас пока нет назначенных заявок.
+        </div>
+    }
+</div>

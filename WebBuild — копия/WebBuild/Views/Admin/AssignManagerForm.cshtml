@@ -1,0 +1,76 @@
+﻿@model WebBuild.Models.Admin.ApplicationViewModel
+@{
+    ViewData["Title"] = "Назначение руководителя";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="container mt-4">
+    <h2>Обработка заявки #@Model.Id</h2>
+    <p class="lead">Клиент: <b>@Model.ClientName</b></p>
+    <p>Текущий статус: <span class="badge bg-warning text-dark">@Model.CurrentStatusName</span></p>
+    <hr>
+
+    <form asp-action="AssignManager" asp-controller="Application" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="applicationId" value="@Model.Id" />
+
+        <div class="row">
+            <div class="col-md-6">
+                <label class="form-label">Выберите руководителя:</label>
+                <select name="managerId" class="form-select" required>
+                    <option value="0">-- Не назначен --</option>
+
+                    @if (Model.Managers != null && Model.Managers.Any())
+                    {
+                        @foreach (var m in Model.Managers)
+                        {
+                            <option value="@m.Id" selected="@(m.Id == Model.AssignedManagerId)">
+                                @m.PersonData.Surname @m.PersonData.Name (@m.Role?.Name)
+                            </option>
+                        }
+
+                    }
+                    else
+                    {
+                        <option disabled>Нет доступных руководителей (проверьте настройки фильтрации)</option>
+                    }
+                </select>
+
+                @if (Model.Managers == null || !Model.Managers.Any())
+                {
+                    <div class="text-danger small mt-1">
+                         В базе данных нет сотрудников с должностью, указанной в фильтре контроллера.
+                    </div>
+                }
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Изменить статус (опционально):</label>
+                <select name="newStatusId" class="form-select">
+                    <option value="1">Новый</option>
+                    <option value="2">В работе</option>
+                    <option value="3">Выполнен</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-success btn-lg">Сохранить изменения</button>
+            <a asp-action="ApplicationsList" class="btn btn-secondary">Отмена / Назад к списку</a>
+        </div>
+    </form>
+</div>

@@ -1,0 +1,141 @@
+﻿@model WebBuild.Models.Admin.EmployeeCreateEditViewModel;
+
+@{
+    ViewData["Title"] = "Редактировать сотрудника";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4">Редактировать сотрудника</h2>
+
+    <a asp-action="Index" asp-controller="EditCreate" class="btn btn-secondary mb-3">&lt;&lt; К списку сотрудников</a>
+    <hr />
+
+    <form asp-action="Edit" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" /> 
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label asp-for="Surname" class="form-label">Фамилия</label>
+                    <input asp-for="Surname" class="form-control" />
+                    <span asp-validation-for="Surname" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label">Имя</label>
+                    <input asp-for="Name" class="form-control" />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Patronymic" class="form-label">Отчество</label>
+                    <input asp-for="Patronymic" class="form-control" />
+                    <span asp-validation-for="Patronymic" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label">Email (Логин)</label>
+                    <input asp-for="Email" type="email" class="form-control" placeholder="example@mail.com" />
+                    <small class="text-muted">Если email занят другим пользователем, сохранить не получится.</small>
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label">Новый пароль (оставить пустым, чтобы не менять)</label>
+                    <input asp-for="Password" type="password" class="form-control" autocomplete="new-password" />
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                    <div class="form-text text-muted small">
+                        Введите новый пароль здесь, если хотите его изменить. Если поле пустое, текущий пароль сохранится.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr class="my-4">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="mb-3">
+                    <label asp-for="PositionId" class="form-label">Должность</label>
+                    @{
+                        var positionsData = ViewBag.Positions as System.Collections.IEnumerable;
+                        bool hasPositions = positionsData != null && positionsData.Cast<object>().Any();
+
+                        var positions = hasPositions
+                                                    ? new Microsoft.AspNetCore.Mvc.Rendering.SelectList(positionsData, "Id", "Name")
+                                                    : new Microsoft.AspNetCore.Mvc.Rendering.SelectList(new System.Collections.Generic.List<object>(), "Id", "Name");
+                    }
+                    <select asp-for="PositionId" asp-items="positions" class="form-select" required>
+                        <option value="">-- Выберите должность --</option>
+                    </select>
+                    <span asp-validation-for="PositionId" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="mb-3">
+                    <label asp-for="RoleId" class="form-label">Роль</label>
+                    @{
+                        var rolesData = ViewBag.Roles as System.Collections.IEnumerable;
+                        bool hasRoles = rolesData != null && rolesData.Cast<object>().Any();
+
+                        var roles = hasRoles
+                            ? new Microsoft.AspNetCore.Mvc.Rendering.SelectList(rolesData, "Id", "Name")
+                            : new Microsoft.AspNetCore.Mvc.Rendering.SelectList(new System.Collections.Generic.List<object>(), "Id", "Name");
+                    }
+                    <select asp-for="RoleId" asp-items="roles" class="form-select" required>
+                        <option value="">-- Выберите роль --</option>
+                    </select>
+                    <span asp-validation-for="RoleId" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="mb-3">
+                    <label asp-for="PhoneNumberInput" class="form-label">Номер телефона</label>
+                    <input asp-for="PhoneNumberInput" type="tel" class="form-control"
+                           placeholder="+7 (999) 000-00-00"
+                           pattern="[\d\+\-\(\)\s]{7,20}"
+                           title="Введите корректный номер телефона">
+                    <div class="form-text">Можно ввести новый номер или существующий.</div>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-4 offset-md-8">
+                <div class="mb-3">
+                    <label asp-for="EmployeeStateId" class="form-label">Состояние сотрудника</label>
+
+                    @{
+                        var statesData = ViewBag.States as System.Collections.IEnumerable ?? new System.Collections.Generic.List<object>();
+                        var enumerableStates = statesData as System.Collections.IEnumerable ?? new System.Collections.Generic.List<object>();
+                        var statesSelectList = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(enumerableStates, "Id", "State");
+                        bool isEmpty = !enumerableStates.Cast<object>().Any();
+                    }
+
+                    <select asp-for="EmployeeStateId" asp-items="statesSelectList" class="form-select" required>
+                        <option value="">-- Выберите состояние --</option>
+                    </select>
+                    <span asp-validation-for="EmployeeStateId" class="text-danger"></span>
+
+                    @if (isEmpty)
+                    {
+                        <div class="alert alert-warning mt-2 small p-2">
+                             В базе нет записей состояний сотрудников. Добавьте запись в таблицу employee_stat.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <hr class="my-4">
+
+        <button type="submit" class="btn btn-success">Сохранить изменения</button>
+        <a asp-action="Index" asp-controller="EditCreate" class="btn btn-secondary">Отмена</a>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

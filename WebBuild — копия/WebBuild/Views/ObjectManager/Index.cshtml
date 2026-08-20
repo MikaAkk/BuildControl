@@ -1,0 +1,23 @@
+﻿@model dynamic
+@{
+    ViewData["Title"] = "Руководитель объекта";
+}
+
+<div class="container mt-4">
+    <h1>Добро пожаловать,Руководитель объекта!</h1>
+    <p>Здесь ты можешь управлять .</p>
+
+    <div class="alert alert-success">
+        <strong>Статус доступа:</strong> Доступ к  модулям.
+    </div>
+    <div class="row mt-4">
+        <div class="col-md-4 mb-3">
+            <a asp-controller="ApplicationManager" asp-action="ObjectManagerApplicationList" class="card text-white bg-primary h-100 text-decoration-none d-flex flex-column align-items-center justify-content-center p-4 shadow">
+                <h3>Заявки</h3>
+            </a>
+        </div>
+    </div>
+    <form asp-controller="Account" asp-action="Logout" method="post" style="display:inline;">
+        <button type="submit" class="btn btn-danger">Выйти из системы</button>
+    </form>
+</div>

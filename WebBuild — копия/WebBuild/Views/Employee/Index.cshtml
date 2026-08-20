@@ -1,0 +1,17 @@
+﻿@model dynamic
+@{
+    ViewData["Title"] = "Сотрудник";
+}
+
+<div class="container mt-4">
+    <h1>Добро пожаловать,Сотрудник!</h1>
+    <p>Здесь ты можешь увидеть свои задачи .</p>
+
+    <div class="alert alert-success">
+        <strong>Статус доступа:</strong> Доступ частично .
+    </div>
+
+    <form asp-controller="Account" asp-action="Logout" method="post" style="display:inline;">
+        <button type="submit" class="btn btn-danger">Выйти из системы</button>
+    </form>
+</div>

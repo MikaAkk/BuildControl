@@ -1,0 +1,110 @@
+﻿@model WebBuild.Models.CalculatorViewModel
+
+@{
+    ViewData["Title"] = "Калькулятор стоимости";
+    var services = ViewBag.Services as List<WebBuild.Models.Enities.WorkerService>; 
+}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <a asp-action="Index" asp-controller="Home" class="btn btn-outline-secondary">← На главную</a>
+    </div>
+<div class="container mt-5">
+    <h2 class="mb-4">Расчет стоимости работ</h2>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <form asp-action="SubmitCalculatorRequest" asp-controller="Public" method="post" class="card p-4 shadow-sm">
+        @Html.AntiForgeryToken()
+        <div id="preview-block" class="mb-4 p-3 bg-light rounded border">
+            <h4>Предварительная стоимость:</h4>
+            <p class="h3 text-primary fw-bold" id="preview-price">0 ₽</p>
+            <small class="text-muted">Цена может измениться после уточнения деталей менеджером.</small>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Тип работ <span class="text-danger">*</span></label>
+            <select asp-for="ServiceId" id="service-select" class="form-select" required>
+                <option value="">-- Выберите услугу --</option>
+                @foreach (var service in services)
+                {
+                    <option value="@service.Id" data-price="@service.BasePrice">@service.Name (@service.BasePrice ₽/ед.)</option>
+                }
+            </select>
+            <span class="text-danger" asp-validation-for="ServiceId"></span>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Количество (шт/м²) <span class="text-danger">*</span></label>
+            <input asp-for="Quantity" id="quantity-input" type="number" step="0.1" class="form-control" placeholder="Например: 10.5" oninput="calculatePreview()"  />
+            <span class="text-danger" asp-validation-for="Quantity"></span>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Ваше имя <span class="text-danger">*</span></label>
+            <input asp-for="ClientName" class="form-control" required placeholder="Иван Иванов" />
+            <span class="text-danger" asp-validation-for="ClientName"></span>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Телефон <span class="text-danger">*</span></label>
+            <input asp-for="ClientPhone" class="form-control" type="tel" required 
+                   placeholder="+7 (999) 000-00-00" 
+                   title="Введите номер в формате +7 или 8 и 10 цифр" />
+            <div class="form-text">Используйте формат: +79990000000 или 89990000000</div>
+            <span class="text-danger" asp-validation-for="ClientPhone"></span>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input asp-for="EmailAddress" class="form-control" type="email" 
+                   placeholder="example@mail.ru" 
+                   title="Введите корректный email адрес" />
+            <div class="form-text">Мы отправим вам подтверждение заявки на эту почту.</div>
+            <span class="text-danger" asp-validation-for="EmailAddress"></span>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Название компании (если есть)</label>
+            <input asp-for="CompanyName" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Комментарий</label>
+            <textarea asp-for="Comment" class="form-control" rows="3" placeholder="Любые пожелания..."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">Рассчитать и отправить заявку</button>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        function calculatePreview() {
+            const serviceSelect = document.getElementById('service-select');
+            const quantityInput = document.getElementById('quantity-input');
+            const priceDisplay = document.getElementById('preview-price');
+
+            const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
+            const basePrice = parseFloat(selectedOption.getAttribute('data-price')) || 0;
+            
+            let quantity = parseFloat(quantityInput.value) || 0;
+            if (quantity < 0) quantity = 0; 
+
+            const total = basePrice * quantity;
+
+            priceDisplay.textContent = new Intl.NumberFormat('ru-RU').format(total) + ' ₽';
+            
+            if (total > 0) {
+                priceDisplay.classList.remove('text-muted');
+                priceDisplay.classList.add('text-primary', 'fw-bold');
+            } else {
+                priceDisplay.classList.remove('text-primary', 'fw-bold');
+                priceDisplay.classList.add('text-muted');
+            }
+        }
+        document.getElementById('service-select').addEventListener('change', calculatePreview);
+
+        window.addEventListener('DOMContentLoaded', calculatePreview);
+    </script>
+}
