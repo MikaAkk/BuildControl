@@ -1,0 +1,259 @@
+﻿@model WebBuild.Models.Enities.RealEstateObject
+
+@{
+    ViewData["Title"] = "Объект: " + Model.Address;
+}
+
+<div class="container mt-4">
+    <a asp-action="MyObjects" class="btn btn-outline-secondary mb-3">← К списку объектов</a>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <div class="card shadow mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">🏠 @Model.Address</h4>
+            <form asp-controller="ObjectManager" asp-action="ChangeObjectStatus" method="post" class="d-flex align-items-center gap-2">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="objectId" value="@Model.Id" />
+                <select name="newStatusId" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
+                    @if (ViewBag.ObjectStatuses != null)
+                    {
+                        foreach (var status in (List<WebBuild.Models.Enities.ObjectStatus>)ViewBag.ObjectStatuses)
+                        {
+                            if (Model.CurrentStatus?.Id == status.Id)
+                            {
+                                <option value="@status.Id" selected>@status.Name</option>
+                            }
+                            else
+                            {
+                                <option value="@status.Id">@status.Name</option>
+                            }
+                        }
+                    }
+                    else
+                    {
+                        <option value="@Model.CurrentStatus?.Id" selected>@Model.CurrentStatus?.Name</option>
+                    }
+                </select>
+            </form>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <p><strong>Руководитель:</strong> @(Model.Manager?.PersonData != null
+                        ? $"{Model.Manager.PersonData.Surname} {Model.Manager.PersonData.Name}"
+                        : "Не назначен")</p>
+                    <p><strong>Договор №:</strong> @Model.Contract?.Id</p>
+                    <p><strong>Статус договора:</strong>
+                        <span class="badge @(Model.Contract?.Status?.Name == "Подписан" ? "bg-success" : "bg-warning text-dark")">
+                            @Model.Contract?.Status?.Name
+                        </span>
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Клиент:</strong> @(Model.Contract?.Client?.PersonData != null
+                        ? $"{Model.Contract.Client.PersonData.Surname} {Model.Contract.Client.PersonData.Name}"
+                        : "—")</p>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-4 mt-2 mb-2">
+                <span class="badge @(Model.CurrentStatus?.Name == "Архив (завершено)" ? "bg-success" :
+                                     Model.CurrentStatus?.Name == "Приостановлен" ? "bg-danger" :
+                                     "bg-secondary") fs-6 px-3 py-2 rounded-pill">
+                    @(Model.CurrentStatus?.Name == "Архив (завершено)" ? "✅ Завершено" :
+                      Model.CurrentStatus?.Name == "Приостановлен" ? "⏸ Приостановлено" :
+                      Model.CurrentStatus?.Name)
+                </span>
+                <span class="text-warning fw-bold">⚡ Активных: @(ViewBag.ActiveTasks ?? 0)</span>
+                <span class="text-success fw-bold">✅ Готово: @(ViewBag.DoneTasks ?? 0)</span>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.ProjectDescription))
+            {
+                <hr />
+                <h5>Описание проекта</h5>
+                <p class="text-muted">@Model.ProjectDescription</p>
+            }
+        </div>
+    </div>
+
+    <div class="mb-4 d-flex gap-2 flex-wrap align-items-center">
+        <a asp-controller="ObjectManager"
+           asp-action="AssignEmployees"
+           asp-route-id="@Model.Id"
+           class="btn btn-warning">
+            👷 Назначить/изменить сотрудников
+        </a>
+
+        @if (Model.CurrentStatus?.Name != "Архив (завершено)" && Model.CurrentStatus?.Name != "Приостановлен")
+        {
+            <a asp-controller="TaskManager"
+               asp-action="CreateTask"
+               asp-route-objectId="@Model.Id"
+               class="btn btn-primary">
+                ➕ Поставить задачу
+            </a>
+
+            <form asp-controller="ObjectManager"
+                  asp-action="CloseObject"
+                  method="post"
+                  onsubmit="return confirm('Вы уверены, что хотите закрыть объект? Это действие нельзя отменить.');">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="objectId" value="@Model.Id" />
+                <button type="submit" class="btn btn-danger">🔒 Закрыть объект</button>
+            </form>
+        }
+        else
+        {
+            <span class="badge bg-dark text-white px-3 py-2">Объект закрыт — создание задач недоступно</span>
+        }
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">👷 Назначенные сотрудники</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.EmployeeAssignments != null && Model.EmployeeAssignments.Any())
+            {
+                <table class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <th>Сотрудник</th>
+                            <th>Должность</th>
+                            <th>Дата назначения</th>
+                            <th>Назначил</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var assignment in Model.EmployeeAssignments
+                            .Where(a => a.RemovedAt == null)
+                            .OrderBy(a => a.AssignedAt))
+                        {
+                            var emp = assignment.Employee;
+                            var by = assignment.AssignedBy;
+                            <tr>
+                                <td>
+                                    @(emp?.PersonData != null
+                                        ? $"{emp.PersonData.Surname} {emp.PersonData.Name}"
+                                        : "—")
+                                </td>
+                                <td>@(emp?.Position?.Name ?? "—")</td>
+                                <td>@assignment.AssignedAt.ToLocalTime().ToString("dd.MM.yyyy")</td>
+                                <td>
+                                    @(by?.PersonData != null
+                                        ? $"{by.PersonData.Surname} {by.PersonData.Name}"
+                                        : "—")
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="alert alert-info mb-0">
+                    На объекте пока нет назначенных сотрудников. Нажмите кнопку выше, чтобы назначить.
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h5 class="mb-0">📋 Задачи (@(ViewBag.TotalTasks ?? 0))</h5>
+
+            <form asp-action="ObjectDetails" asp-route-id="@Model.Id" method="get" class="d-flex gap-2 align-items-center">
+                <label class="form-label mb-0 text-muted small">Статус:</label>
+                <select name="statusFilter" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
+                    <option value="" selected="@(ViewBag.StatusFilter == null || ViewBag.StatusFilter == "")">Все</option>
+                    @if (ViewBag.TaskStatuses != null)
+                    {
+                        foreach (var s in (List<WebBuild.Models.Enities.WorkTaskStatus>)ViewBag.TaskStatuses)
+                        {
+                            <option value="@s.Name" selected="@(ViewBag.StatusFilter == s.Name)">@s.Name</option>
+                        }
+                    }
+                </select>
+            </form>
+        </div>
+        <div class="card-body">
+            @{
+                var filteredTasks = ViewBag.FilteredTasks as List<WebBuild.Models.Enities.WorkTask> ?? new List<WebBuild.Models.Enities.WorkTask>();
+            }
+
+            @if (filteredTasks.Any())
+            {
+                <table class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <th>Задача</th>
+                            <th>Сотрудник</th>
+                            <th>Срок</th>
+                            <th>Статус</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var task in filteredTasks)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@task.Title</strong>
+                                    @if (!string.IsNullOrEmpty(task.Description))
+                                    {
+                                        <br /><small class="text-muted">@task.Description</small>
+                                    }
+                                </td>
+                                <td>@(task.Employee?.PersonData != null
+                                    ? $"{task.Employee.PersonData.Surname} {task.Employee.PersonData.Name}"
+                                    : "—")</td>
+                                <td>@(task.PlannedEndDate?.ToLocalTime().ToString("dd.MM.yyyy") ?? "—")</td>
+                                <td>
+                                    @{
+                                        var badgeClass = task.Status?.Name switch
+                                        {
+                                            "Готово" => "bg-success",
+                                            "В работе" => "bg-primary",
+                                            "Требует проверки" => "bg-warning text-dark",
+                                            "Отменена" => "bg-danger",
+                                            _ => "bg-secondary"
+                                        };
+                                    }
+                                    <span class="badge @badgeClass">@task.Status?.Name</span>
+                                </td>
+                                <td>
+                                    <a asp-controller="TaskManager" asp-action="EditTask" asp-route-id="@task.Id"
+                                       class="btn btn-outline-primary btn-sm">✏️</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                @if (Model.Tasks != null && Model.Tasks.Any())
+                {
+                    <div class="alert alert-info mb-0">
+                        По выбранному статусу задач нет.
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info mb-0">
+                        Задач пока нет. Назначьте сотрудников и поставьте им задачи.
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
