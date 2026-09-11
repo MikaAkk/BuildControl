@@ -1,0 +1,74 @@
+﻿@{
+    ViewData["Title"] = "Реестр договоров";
+}
+
+<div class="container mt-4">
+    <h1 class="mb-4">Реестр договоров</h1>
+    <a asp-action="Index" asp-controller="ObjectManager" class="btn btn-outline-secondary">← На главную</a>
+    @if (Model is IEnumerable<Contract> contractsList && contractsList.Any())
+    {
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>№ Договора / Шаблон</th>
+                    <th>Клиент</th>
+                    <th>Статус</th>
+                    <th>Дата создания</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in contractsList)
+                {
+                    <tr>
+                        <td>
+                            <strong>ДОГ-@c.Id.ToString("D6")</strong><br>
+                            <small class="text-muted">@c.Template?.Name</small>
+                        </td>
+
+                        <td>
+                            @if (c.Client != null && c.Client.PersonData != null)
+                            {
+                                @($"{c.Client.PersonData.Surname} {c.Client.PersonData.Name}")
+                            }
+                            else
+                            {
+                                <span class="text-danger">Клиент не найден</span>
+                            }
+                        </td>
+
+                        <td>
+                            @if (c.Status?.Name == "Подписан")
+                            {
+                                <span class="badge bg-success">@c.Status.Name</span>
+                            }
+                            else if (c.Status?.Name == "Черновик")
+                            {
+                                <span class="badge bg-warning text-dark">@c.Status.Name</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">@c.Status?.Name</span>
+                            }
+                        </td>
+
+                        <td>@c.CreatedAt.ToString("dd.MM.yyyy")</td>
+
+                        <td>
+                            <a asp-controller="ContractManager"
+                               asp-action="EditContract"
+                               asp-route-id="@c.Id"
+                               class="btn btn-sm btn-outline-primary">Редактировать</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            У ваших объектов пока нет заключенных договоров.
+        </div>
+    }
+</div>

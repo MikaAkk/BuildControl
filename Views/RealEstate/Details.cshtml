@@ -1,0 +1,181 @@
+﻿@model WebBuild.Models.Enities.RealEstateObject
+@using WebBuild.Models.Enities
+@{
+    ViewData["Title"] = $"Объект: {Model.Address}";
+
+    var currentEmployeeId = ViewBag.CurrentEmployeeId as long?;
+    var isManager = ViewBag.IsManager as bool? ?? false;
+    var isAdmin = ViewBag.IsAdmin as bool? ?? false;
+    var tasks = Model.Tasks.AsEnumerable();
+    if (!isAdmin && !isManager)
+    {
+        tasks = tasks.Where(t => t.EmployeeId == currentEmployeeId);
+    }
+}
+
+<a asp-controller="RealEstate" asp-action="RealEstateIndex" class="btn btn-outline-secondary mb-3">&lt;&lt; К списку объектов</a>
+
+<div class="container-fluid">
+    <div class="card shadow-sm mb-4 w-100">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+                <strong class="fs-5">@Model.Address</strong>
+                <span class="badge bg-info text-dark ms-2">@(Model.CurrentStatus?.Name ?? "Без статуса")</span>
+            </div>
+            <span class="text-muted">ID: @Model.Id</span>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4 g-3 w-100">
+                <div class="col-md-4">
+                    <label class="text-muted small">Менеджер</label>
+                    <p class="fw-bold mb-0">
+                        @if (Model.Manager != null)
+                        {
+                            @(Model.Manager.PersonData?.Surname) @(Model.Manager.PersonData?.Name)
+                        }
+                        else
+                        {
+                            <span class="text-muted">Не назначен</span>
+                        }
+                    </p>
+                </div>
+                <div class="col-md-4">
+                    <label class="text-muted small">Контракт</label>
+                    <p class="fw-bold mb-0">
+                        @if (Model.ContractId.HasValue)
+                        {
+                            <text>Договор #@Model.ContractId</text>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Нет</span>
+                        }
+                    </p>
+                </div>
+                <div class="col-md-4">
+                    <label class="text-muted small">Всего задач</label>
+                    <p class="fw-bold mb-0">@tasks.Count()</p>
+                </div>
+            </div>
+            @if (!string.IsNullOrEmpty(Model.ProjectDescription))
+            {
+                <hr>
+                <h5>Описание проекта</h5>
+                <p>@Model.ProjectDescription</p>
+            }
+        </div>
+    </div>
+
+    @if (tasks.Any())
+    {
+        <div class="card shadow-sm mb-4 w-100">
+            <div class="card-header">
+                <strong>
+                    @if (!isAdmin && !isManager)
+                    {
+                        <text>Мои задачи</text>
+                    }
+                    else
+                    {
+                        <text>Задачи объекта (@tasks.Count())</text>
+                    }
+                </strong>
+            </div>
+            <div class="card-body p-0 w-100">
+                <table class="table table-sm table-hover mb-0 w-100">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Задача</th>
+                            <th>Статус</th>
+                            @if (isAdmin || isManager)
+                            {
+                                <th>Исполнитель</th>
+                            }
+                            <th>План. начало</th>
+                            <th>План. окончание</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var t in tasks)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@t.Title</strong>
+                                    @if (!string.IsNullOrEmpty(t.Description))
+                                    {
+                                        <br><small class="text-muted">@t.Description</small>
+                                    }
+                                </td>
+                                <td>
+                                    @if (t.Status != null)
+                                    {
+                                        <span class="badge @(t.Status.Name.ToLower() switch
+                                              {
+                                                  "выполнено" or "готово" or "завершено" => "bg-success",
+                                                  "в работе" => "bg-primary",
+                                                  "новая" or "ожидание" => "bg-secondary",
+                                                  _ => "bg-warning text-dark"
+                                              })">@t.Status.Name</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                @if (isAdmin || isManager)
+                                {
+                                    <td>
+                                        @if (t.Employee != null)
+                                        {
+                                            @(t.Employee.PersonData?.Surname) @(t.Employee.PersonData?.Name)
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Не назначен</span>
+                                        }
+                                    </td>
+                                }
+                                <td>
+                                    @(t.PlannedStartDate?.ToString("dd.MM.yyyy") ?? "-")
+                                </td>
+                                <td>
+                                    @(t.PlannedEndDate?.ToString("dd.MM.yyyy") ?? "-")
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info w-100">Задач не назначено.</div>
+    }
+
+    @if (Model.Documents != null && Model.Documents.Any())
+    {
+        <div class="card shadow-sm mb-4 w-100">
+            <div class="card-header">
+                <strong>Документы (@Model.Documents.Count)</strong>
+            </div>
+            <div class="card-body p-0 w-100">
+                <table class="table table-sm mb-0 w-100">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Документ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var d in Model.Documents)
+                        {
+                            <tr>
+                                <td>Документ #@d.Id</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>

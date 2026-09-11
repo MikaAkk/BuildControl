@@ -1,0 +1,41 @@
+﻿@model WebBuild.Models.LoginViewModel;
+
+@{
+    ViewData["Title"] = "Вход";
+    Layout = "/Views/Shared/_Layout.cshtml";
+}
+<div class="d-flex flex-column align-items-center justify-content-start" style="height: 70vh; width: 70%; background-color: #eef0f4; padding-top: 40px;">
+    <h2 class="mb-4">@ViewData["Title"]</h2>
+    <form method="post" asp-controller="Account" asp-action="DoLogin" class="p-4" style="width: 80%; background: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary mb-3">&lt;&lt; На главную страницу</a>
+        @if (!string.IsNullOrEmpty(ViewBag.DebugInfo))
+        {
+            <div class="alert alert-warning">@ViewBag.DebugInfo</div>
+        }
+        @if (!string.IsNullOrEmpty(ViewBag.FinalMessage))
+        {
+            <div class="alert alert-success">@ViewBag.FinalMessage</div>
+        }
+
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+        <div class="mb-3">
+            <label asp-for="Email" class="form-label"></label>
+            <input asp-for="Email" class="form-control" autocomplete="username" />
+            <span asp-validation-for="Email" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Password" class="form-label"></label>
+            <input asp-for="Password" class="form-control" type="password" autocomplete="current-password" />
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </div>
+
+        <div class="form-check mb-3">
+            <input class="form-check-input" asp-for="RememberMe" />
+            <label class="form-check-label" asp-for="RememberMe"></label>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 mb-2">Войти</button>
+    </form>
+</div>

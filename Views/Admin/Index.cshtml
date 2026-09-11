@@ -1,0 +1,135 @@
+﻿@using WebBuild.Models.Enities
+@{
+    ViewData["Title"] = "Панель управления";
+}
+<link href="/css/style.css" rel="stylesheet" />
+<div class="page-container">
+    <div class="page-header mb-4 d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">Панель администратора</h2>
+        <form asp-controller="Account" asp-action="Logout" method="post" style="display:inline;">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-logout">
+                <svg class="bi" width="16" height="16">
+                    <use xlink:href="/bootstrap-icons.svg#box-arrow-right"></use>
+                </svg>
+                Выйти
+            </button>
+        </form>
+    </div>
+
+    <div class="row mb-4 g-3 justify-content-center">
+        <div class="col-md-3">
+            <div class="card stat-card stat-blue h-100 d-flex">
+                <div class="card-body d-flex flex-column justify-content-between">
+                    <div>
+                        <h5 class="stat-title">Всего заявок</h5>
+                        <p class="stat-number mb-0">@ViewBag.TotalApplications</p>
+                    </div>
+                    <small class="stat-desc">Общее количество всех заявок в системе</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card stat-amber h-100 d-flex">
+                <div class="card-body d-flex flex-column justify-content-between">
+                    <div>
+                        <h5 class="stat-title">Активные заявки</h5>
+                        <p class="stat-number mb-0">@ViewBag.ActiveApplications</p>
+                    </div>
+                    <small class="stat-desc">В работе, не отклонены и не закрыты</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card stat-cyan h-100 d-flex">
+                <div class="card-body d-flex flex-column justify-content-between">
+                    <div>
+                        <h5 class="stat-title">Новые (24 ч)</h5>
+                        <p class="stat-number mb-0">@ViewBag.NewApplications24h</p>
+                    </div>
+                    <small class="stat-desc">Поступили за последние сутки</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card stat-green h-100 d-flex">
+                <div class="card-body d-flex flex-column justify-content-between">
+                    <div>
+                        <h5 class="stat-title">Клиенты</h5>
+                        <p class="stat-number mb-0">@ViewBag.TotalClients</p>
+                    </div>
+                    <small class="stat-desc">Всего зарегистрированных клиентов</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row g-4">
+        <div class="col-12 mb-4">
+            <div class="card h-100 d-flex flex-column">
+                <div class="card-header">
+                    <h4>Быстрые действия</h4>
+                </div>
+                <div class="card-body flex-fill d-flex flex-column">
+                    <div class="d-grid gap-2 flex-fill">
+                        <a asp-controller="Application" asp-action="ApplicationsList" class="btn btn-action">
+                            📋 Список всех заявок
+                        </a>
+                        <a asp-controller="Client" asp-action="ClientIndex" class="btn btn-action">
+                            👤 Управление клиентами
+                        </a>
+                        <a asp-controller="EditCreate" asp-action="EditIndex" class="btn btn-action">
+                            👥 Управление сотрудниками
+                        </a>
+                        <a asp-controller="Service" asp-action="ServiceIndex" class="btn btn-action">
+                            💰 Управление прайс-листом
+                        </a>
+                        <a asp-controller="RealEstate" asp-action="RealEstateIndex" class="btn btn-action">
+                            🏠 Каталог объектов
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 mb-4">
+            <div class="card h-100 d-flex flex-column">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Активные сотрудники <span class="badge bg-success">@ViewBag.ActiveEmployees</span></h4>
+                </div>
+                <div class="card-body p-0 overflow-auto flex-fill" style="max-height: 350px;">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>ФИО</th>
+                                <th>Роль</th>
+                                <th class="text-end">Статус</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                var activeStaff = ViewBag.ActiveStaffPreview as System.Collections.Generic.IEnumerable<WebBuild.Models.Enities.Employee>;
+                            }
+                            @if (activeStaff != null && activeStaff.Any())
+                            {
+                                foreach (var emp in activeStaff)
+                                {
+                                    <tr>
+                                        <td>@emp.PersonData.Surname @emp.PersonData.Name</td>
+                                        <td>@emp.Role.Name</td>
+                                        <td class="text-end"><span class="badge bg-success">Активен</span></td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="3" class="text-center py-4 text-muted small">Нет активных сотрудников</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
