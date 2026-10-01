@@ -1,0 +1,83 @@
+﻿@model WebBuild.Models.ObjectManager.ContractCreationViewModel
+
+@{
+    ViewData["Title"] = "Создание договора";
+}
+
+<div class="container mt-5">
+    <h2>Создание договора для заявки №@Model.ApplicationId</h2>
+    <p>Клиент: <b>@Model.ClientName</b></p>
+
+    <form asp-controller="ContractManager" asp-action="CreateContractFromApp" method="post">
+        @Html.AntiForgeryToken()
+
+        <input type="hidden" name="ApplicationId" value="@Model.ApplicationId" />
+        <input type="hidden" name="ClientId" value="@Model.ClientId" />
+
+        <div class="mb-3">
+            <label>Шаблон договора</label>
+            <select name="SelectedTemplateId" class="form-control" required>
+                <option value="">-- Выберите шаблон --</option>
+                @{
+                    var templates = ViewBag.Templates as List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>;
+                }
+                @if (templates != null)
+                {
+                    foreach (var item in templates)
+                    {
+                        <option value="@item.Value" selected="@(Model.SelectedTemplateId.ToString() == item.Value)">
+                            @item.Text
+                        </option>
+                    }
+                }
+            </select>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <label>Дата начала</label>
+                <input type="date" name="StartDate" value="@Model.StartDate.ToString("yyyy-MM-dd")" class="form-control" required />
+            </div>
+            <div class="col-md-6">
+                <label>Дата окончания</label>
+                <input type="date" name="EndDate" value="@Model.EndDate.ToString("yyyy-MM-dd")" class="form-control" required />
+            </div>
+        </div>
+
+        <hr />
+        <h4>Услуги в договоре</h4>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Услуга</th>
+                    <th>Кол-во</th>
+                    <th>Цена</th>
+                    <th>Итого</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Services != null && Model.Services.Any())
+                {
+                    foreach (var service in Model.Services)
+                    {
+                        <tr>
+                            <td>@service.ServiceName</td>
+                            <td>@service.Quantity</td>
+                            <td>@service.Price.ToString("C")</td>
+                            <td>@service.Total.ToString("C")</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">Услуги не указаны</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <button type="submit" class="btn btn-success">Создать договор</button>
+        <a asp-controller="ApplicationManager" asp-action="ObjectManagerApplicationList" class="btn btn-secondary">Отмена</a>
+    </form>
+</div>

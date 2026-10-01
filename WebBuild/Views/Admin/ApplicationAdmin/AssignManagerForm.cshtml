@@ -1,0 +1,129 @@
+﻿@model WebBuild.Models.Admin.ApplicationViewModel
+@{
+    ViewData["Title"] = "Обработка заявки #" + Model.Id;
+}
+<link rel="stylesheet" href="~/css/style.css" asp-append-version="true" />
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="container mt-4">
+    <h2>Обработка заявки #@Model.Id</h2>
+    <p class="lead">Клиент: <b>@Model.ClientName</b></p>
+    <p>Текущий статус: <span class="badge bg-warning text-dark">@Model.CurrentStatusName</span></p>
+    <hr>
+
+    <form asp-action="AssignManager" asp-controller="Application" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="applicationId" value="@Model.Id" />
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Руководитель</label>
+                <select name="managerId" class="form-select" required>
+                    <option value="0">-- Не назначен --</option>
+                    @if (Model.Managers != null && Model.Managers.Any())
+                    {
+                        @foreach (var m in Model.Managers)
+                        {
+                            if (m.Id == Model.AssignedManagerId)
+                            {
+                                <option value="@m.Id" selected="selected">
+                                    @m.PersonData.Surname @m.PersonData.Name (@m.Role?.Name)
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="@m.Id">
+                                    @m.PersonData.Surname @m.PersonData.Name (@m.Role?.Name)
+                                </option>
+                            }
+                        }
+                    }
+                    else
+                    {
+                        <option disabled>Нет доступных руководителей</option>
+                    }
+                </select>
+                @if (Model.Managers == null || !Model.Managers.Any())
+                {
+                    <div class="text-danger small mt-1">
+                        Нет сотрудников с ролью «Руководитель». Проверьте настройки фильтрации.
+                    </div>
+                }
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label for="newStatusId" class="form-label">Статус заявки</label>
+                <select name="newStatusId" id="newStatusId" class="form-select">
+                    <option value="0">-- Оставить текущий (@Model.CurrentStatusName) --</option>
+                    @if (ViewBag.Statuses != null)
+                    {
+                        @foreach (var status in (IEnumerable<WebBuild.Models.Enities.ApplicationStatus>)ViewBag.Statuses)
+                        {
+                            if (status.Id == Model.CurrentStatusId)
+                            {
+                                <option value="@status.Id" selected="selected">@status.Name</option>
+                            }
+                            else
+                            {
+                                <option value="@status.Id">@status.Name</option>
+                            }
+                        }
+                    }
+                </select>
+                <small class="text-muted">Выберите статус, если нужно его изменить.</small>
+            </div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-3 mt-4 align-items-center">
+            <button type="submit" class="btn btn-success btn-lg">
+                <i class="bi bi-save"></i> Сохранить изменения
+            </button>
+
+            <button type="button" class="btn btn-danger" id="rejectBtn">Отклонить</button>
+            <a asp-action="ApplicationsList" class="btn btn-secondary btn-lg">
+                <i class="bi bi-arrow-left"></i> Отмена / Назад к списку
+            </a>
+        </div>
+    </form>
+
+    <div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="rejectModalLabel">Отклонение заявки #@Model.Id</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-danger fw-bold">Вы уверены, что хотите отклонить заявку?</p>
+                    <p>Клиент получит уведомление на email с указанной причиной.</p>
+                    <form id="rejectForm" asp-action="RejectApplication" asp-controller="Application" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="applicationId" value="@Model.Id" />
+                        <div class="mb-3">
+                            <label for="rejectReason" class="form-label">Причина отклонения (обязательно)</label>
+                            <textarea name="reason" id="rejectReason" class="form-control" rows="3" required placeholder="Например: Неверный адрес, дубликат заявки, клиент отказался..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                    <button type="button" class="btn btn-danger" onclick="submitReject()">Подтвердить отклонение</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="~/js/admin/applicationAdmin/AssignManagerForm.js" asp-append-version="true"></script>
