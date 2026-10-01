@@ -1,0 +1,93 @@
+﻿@{
+    ViewData["Title"] = "Главная страница";
+    var isAuthenticated = Context.Session.Get("EmployeeId") != null;
+}
+
+
+<div class="container py-5">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <span>@TempData["SuccessMessage"]</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span>@TempData["Error"]</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <header class="page-header mb-5">
+        <div class="container p-3">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+                <div>
+                    <h1 class="display-5 fw-bold text-dark mb-2 mb-md-0">СтройКонтроль</h1>
+                    <p class="text-muted mb-0">Система управления строительными проектами</p>
+                </div>
+                <div class="mt-3 mt-md-0">
+                    @if (isAuthenticated)
+                    {
+                        <form asp-controller="Account" asp-action="Logout" method="post">
+                            <button type="submit" class="btn btn-outline-danger rounded-pill px-4 py-2">
+                                Выйти из системы
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <a asp-action="ShowLogin" asp-controller="Account" class="btn btn-outline-primary rounded-pill px-4 py-2">
+                            Войти в систему
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <section class="text-center mb-5">
+        <p class="lead text-muted">
+            Эффективное управление объектами, контроль сроков и прозрачность бюджета на каждом этапе строительства.
+        </p>
+        <a asp-controller="Public" asp-action="Calculator" class="custom-button btn-calculate">
+            Рассчитать стоимость работ
+        </a>
+    </section>
+
+    <section class="row g-4">
+        <div class="col-md-6">
+            <div class="card h-100 border-0 shadow-sm hover-card">
+                <div class="card-body d-flex flex-column">
+                    <div class="mb-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-building" viewBox="0 0 16 16">
+                            <path d="M3.5 1a.5.5 0 0 0-.5.5v14a.5.5 0 0 0 .5.5h1v.5H2v-.5H1v.5H0v-.5a.5.5 0 0 0-.5-.5V1A.5.5 0 0 0 0 .5v.5h.5V1zm.5 15H1v-1h3v1zM1 8h3V7H1zm0 3h3v-1H1zm4-6H1v1h4zm0 3H1v1h4zm0 3H1v1h4zm0-3h4V8H5zm0 3h4v-1H5zm5-6h4V7h-4zm0 3h4v-1h-4zm0 3h4v-1h-4z" />
+                        </svg>
+                    </div>
+                    <h4 class="card-title">Портфолио проектов</h4>
+                    <p class="card-text text-muted flex-grow-1">
+                        Раздел с фотографиями и описаниями завершённых объектов. Посмотрите, как мы реализуем проекты от котлована до сдачи в эксплуатацию.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card h-100 border-0 shadow-sm hover-card">
+                <div class="card-body d-flex flex-column">
+                    <div class="mb-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-chat-dots" viewBox="0 0 16 16">
+                            <path d="M4 16a2 2 0 0 1-2-2V8c0-1.11.89-2 2-2h8a2 2 0 0 1 2 2v5.57A2 2 0 0 1 12.43 16H4zm2-7.5V6c0-.83-.67-1.5-1.5-1.5H2a2 2 0 0 0-2 2v7.5A1.5 1.5 0 0 0 .5 16h15a1.5 1.5 0 0 0 1.5-1.5V9c0-.83-.67-1.5-1.5-1.5h-2.36A1.61 1.61 0 0 0 14 6v-1C14 4.2 13 3 11.5 3H4A1.5 1.5 0 0 0 2.5 4.5v2H2a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1H4.5a.5.5 0 0 1 0-1z" />
+                        </svg>
+                    </div>
+                    <h4 class="card-title">Отзывы о компании</h4>
+                    <p class="card-text text-muted flex-grow-1">
+                        Модуль для просмотра отзывов о компании. Узнайте, что говорят наши клиенты и партнёры о качестве наших работ и соблюдении сроков.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
